@@ -156,7 +156,8 @@ export default {
       flowDataType: false,
       flowDataRange: [0, 1000],
       realtimeData: [],
-      currentPacket: null
+      currentPacket: null,
+      latestTime: 0
     }
   },
   computed: {
@@ -211,7 +212,7 @@ export default {
           type: 'value'
         },
         series: [{
-          symbolSize: 5,
+          symbolSize: 2,
           data: dataPoints,
           type: 'line'
         }]
@@ -244,6 +245,13 @@ export default {
           if (vm.protocols.length) {
             vm.statisticProtocolType = vm.protocols[0].value
           }
+          // 获取最近更新的时间
+          let latest = 0
+          for (let idx in vm.realtimeData) {
+            latest = Math.max(vm.realtimeData[idx].last_updated, latest)
+          }
+          vm.latestTime = latest
+          vm.flowDataRange[1] = latest
         }
       })
       .catch((e) => {

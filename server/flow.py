@@ -27,7 +27,7 @@ def get_all_discrete_list_builder(keyword):
 
     with g.db.cursor() as cur:
         # 查询所有数据
-        sql = 'SELECT DISTINCT %s  FROM flow_table ORDER BY last_updated ASC' % (
+        sql = 'SELECT DISTINCT %s  FROM (SELECT * FROM flow_table ORDER BY last_updated ASC LIMIT 300) as tmp  ORDER BY last_updated ASC' % (
             keyword)
         cur.execute(sql)
         return [item[keyword] for item in cur.fetchall()]
@@ -42,11 +42,31 @@ def method_name(key):
         return json.dumps(cur.fetchall())
 
 
+@app.route('/series/<category>/<value>')
+def get_series(category, value):
+    """获取分类分布信息
+    Returns:
+        [type] -- [description]
+    """
+
+    with g.db.cursor() as cur:
+        sql = "SELECT * FROM flow_table WHERE %s LIKE '%s' ORDER BY last_updated ASC" % (
+            category, value)
+        cur.execute(sql)
+        return json.dumps(cur.fetchall())
+
+
 @app.route('/flowdata')
 def get_flow_data():
+    """获取流量信息
+
+    Returns:
+        [type] -- [description]
+    """
+
     with g.db.cursor() as cur:
-        # 查询所有数据
-        sql = 'SELECT * FROM flow_table ORDER BY last_updated ASC'
+        # 查询所有数据 注意 限制300条
+        sql = 'SELECT * FROM flow_table ORDER BY last_updated ASC LIMIT 300'
         cur.execute(sql)
         flow_data = cur.fetchall()
         return json.dumps(

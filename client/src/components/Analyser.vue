@@ -10,11 +10,11 @@
           </el-table-column>
           <el-table-column prop="protocol" label="协议 " align="center" width="220" :filters="filters.protocols" :filter-method="filterHandler" filter-placement="bottom-end">
           </el-table-column>
-          <el-table-column prop="src_ip" label="源IP地址" align="center" :filters="filters.src_ips" :filter-method="filterHandler" width="120px">
+          <el-table-column prop="src_ip" label="源IP地址" align="center" :filters="filters.src_ips" :filter-method="filterHandler" width="130px">
           </el-table-column>
           <el-table-column prop="src_port" label="源端口" align="center" :filters="filters.src_ports" :filter-method="filterHandler">
           </el-table-column>
-          <el-table-column prop="dst_ip" label="目的IP地址" align="center" :filters="filters.dst_ips" :filter-method="filterHandler" width="120px">
+          <el-table-column prop="dst_ip" label="目的IP地址" align="center" :filters="filters.dst_ips" :filter-method="filterHandler" width="130px">
           </el-table-column>
           <el-table-column prop="dst_port" label="目的端口" align="center" :filters="filters.dst_ports" :filter-method="filterHandler">
           </el-table-column>
@@ -48,6 +48,14 @@
     <el-row class="mt-10">
       <el-card>
         <div slot="header" class="clearfix">
+          <span>端口分类统计</span>
+        </div>
+        <Chart :title="'端口分类统计'" :selet-options="[{value: 'src_port',name: '源端口'},{value: 'dst_port',name: '目的端口'}]" />
+      </el-card>
+    </el-row>
+    <el-row class="mt-10">
+      <el-card>
+        <div slot="header" class="clearfix">
           <span>MAC地址分类统计</span>
         </div>
         <Chart :title="'MAC地址分类统计'" :selet-options="[{value: 'src_mac',name: '源MAC地址'},{value: 'dst_mac',name: '目的MAC地址'}]" />
@@ -56,8 +64,9 @@
     <el-row class="mt-10">
       <el-card>
         <div slot="header" class="clearfix">
-          <span>分类统计</span>
+          <span>协议流量分类统计</span>
         </div>
+        <Chart :title="'协议分类统计'" :selet-options="[{value: 'protocol',name: '所有协议'}]" />
       </el-card>
     </el-row>
   </div>
