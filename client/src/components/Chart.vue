@@ -157,11 +157,25 @@ export default {
           // 转换为echarts识别的格式
           for (let idx in response.data) {
             let item = response.data[idx]
-            if (item._v > 2) {
+            if (vm.seletOptions[0].value === 'src_ip' || vm.seletOptions[0].value === 'dst_ip') {
+              if (item._v > 100) {
+                vm.dist.push({
+                  value: item._v,
+                  name: item._k
+                })
+              }
+            } else if (vm.seletOptions[0].value === 'protocol') {
               vm.dist.push({
                 value: item._v,
                 name: item._k
               })
+            } else {
+              if (item._v > 80) {
+                vm.dist.push({
+                  value: item._v,
+                  name: item._k
+                })
+              }
             }
           }
         })

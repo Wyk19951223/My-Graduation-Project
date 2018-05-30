@@ -237,6 +237,9 @@ export default {
     vm.$http.get('/api/flowdata')
       .then((response) => {
         vm.realtimeData = response.data.packets
+        // 获取最近更新的时间
+        vm.latestTime = response.data.latest.latest
+        vm.flowDataRange[1] = vm.latestTime
         for (let idx in response.data.protocols) {
           vm.protocols.push({
             text: response.data.protocols[idx],
@@ -245,19 +248,15 @@ export default {
           if (vm.protocols.length) {
             vm.statisticProtocolType = vm.protocols[0].value
           }
-          // 获取最近更新的时间
-          let latest = 0
-          for (let idx in vm.realtimeData) {
-            latest = Math.max(vm.realtimeData[idx].last_updated, latest)
-          }
-          vm.latestTime = latest
-          vm.flowDataRange[1] = latest
         }
       })
       .catch((e) => {
         console.error(e)
         this.$message.error('网络错误！')
       })
+    setInterval(function () {
+      vm.fetchNewFlow()
+    }, 2000)
   },
   methods: {
     protocolFilter: function (value, row) {
@@ -265,6 +264,29 @@ export default {
     },
     handleCurrentChange (row, oldRow) {
       this.currentPacket = row
+    },
+    fetchNewFlow: function () {
+      // 获取新的异常数据流量
+      let vm = this
+      vm.$http.get('/api/new/' + vm.latestTime)
+        .then((response) => {
+          vm.latestTime = response.data.latest.latest
+          for (let idx in response.data.new_flow) {
+            vm.realtimeData.push(response.data.new_flow[idx])
+          }
+          vm.protocols = []
+          for (let idx in response.data.protocols) {
+            vm.protocols.push({
+              text: response.data.protocols[idx],
+              value: response.data.protocols[idx]
+            })
+            if (vm.protocols.length) {
+              // vm.statisticProtocolType = vm.protocols[0].value
+            }
+          }
+          console.log(response.data)
+          // vm.realtimeData.unshift()
+        })
     }
   }
 }

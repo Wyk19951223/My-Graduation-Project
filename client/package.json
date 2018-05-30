@@ -2,7 +2,7 @@
   "name": "client",
   "version": "1.0.0",
   "description": "byw's cd",
-  "author": "HViktorTsoi <cuijiahetony@163.com>",
+  "author": "WYK",
   "private": true,
   "scripts": {
     "dev": "node build/dev-server.js",

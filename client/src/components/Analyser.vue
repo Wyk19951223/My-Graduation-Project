@@ -32,8 +32,25 @@
         <div slot="header" class="clearfix">
           <span>异常流量统计</span>
         </div>
-        <el-table>
-
+        <el-table :highlight-current-row="true" :data="abnormalFlowData" :default-sort="{prop: 'last_updated', order: 'ascending'}" height="300" max-height="350">
+          <el-table-column prop="last_updated" label="时间" align="center" sortable>
+          </el-table-column>
+          <el-table-column prop="protocol" label="协议 " align="center" width="220" :filters="filters.protocols" :filter-method="filterHandler" filter-placement="bottom-end">
+          </el-table-column>
+          <el-table-column prop="src_ip" label="源IP地址" align="center" :filters="filters.src_ips" :filter-method="filterHandler" width="130px">
+          </el-table-column>
+          <el-table-column prop="src_port" label="源端口" align="center" :filters="filters.src_ports" :filter-method="filterHandler">
+          </el-table-column>
+          <el-table-column prop="dst_ip" label="目的IP地址" align="center" :filters="filters.dst_ips" :filter-method="filterHandler" width="130px">
+          </el-table-column>
+          <el-table-column prop="dst_port" label="目的端口" align="center" :filters="filters.dst_ports" :filter-method="filterHandler">
+          </el-table-column>
+          <el-table-column prop="packetcount" label="包数量" align="center" sortable>
+          </el-table-column>
+          <el-table-column prop="octetcount" label="流量大小" align="center" sortable width="100px">
+          </el-table-column>
+          <el-table-column prop="hash_id" label="HASH ID" align="center">
+          </el-table-column>
         </el-table>
       </el-card>
     </el-row>
@@ -89,6 +106,20 @@ export default {
         dst_ports: []
       },
       filterOptions: ['protocols', 'src_ips', 'dst_ips', 'src_ports', 'dst_ports']
+    }
+  },
+  computed: {
+    abnormalFlowData: function () {
+      let vm = this
+      let abnormalFlowList = []
+      let packetThs = 5000
+      let octetThs = 5000
+      for (let idx in vm.flowData) {
+        if (vm.flowData[idx].packetcount > packetThs || vm.flowData[idx].octetcount > octetThs) {
+          abnormalFlowList.push(vm.flowData[idx])
+        }
+      }
+      return abnormalFlowList
     }
   },
   mounted () {
