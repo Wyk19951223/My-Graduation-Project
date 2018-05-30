@@ -4,6 +4,8 @@ import pymysql.cursors
 import json
 app = Flask(__name__)
 
+FLOW_LIMIT = 4000
+
 
 @app.before_request
 def before_request():
@@ -20,6 +22,16 @@ def teardown_request(exception):
         g.db.close()
 
 
+def get_latest_time():
+    """获取最近的时间
+    """
+    with g.db.cursor() as cur:
+        # 查询所有数据
+        sql = 'SELECT MAX(last_updated) latest FROM flow_table'
+        cur.execute(sql)
+        return cur.fetchone()
+
+
 def get_all_discrete_list_builder(keyword):
     """获取所有的协议
     Returns:
@@ -27,19 +39,22 @@ def get_all_discrete_list_builder(keyword):
 
     with g.db.cursor() as cur:
         # 查询所有数据
-        sql = 'SELECT DISTINCT %s  FROM (SELECT * FROM flow_table ORDER BY last_updated ASC LIMIT 300) as tmp  ORDER BY last_updated ASC' % (
+        sql = 'SELECT %s FROM (SELECT * FROM flow_table ORDER BY last_updated DESC LIMIT 300) as tmp  ORDER BY last_updated ASC' % (
             keyword)
         cur.execute(sql)
-        return [item[keyword] for item in cur.fetchall()]
+        return list(set([item[keyword] for item in cur.fetchall()]))
 
 
 @app.route('/dist/<key>')
-def method_name(key):
+def dist(key):
     with g.db.cursor() as cur:
-        sql = "SELECT %s _k,count(%s) _v FROM flow_table GROUP BY %s" % (
-            key, key, key)
+        sql = "SELECT %s _k,sum(packetcount) _v FROM flow_table GROUP BY %s" % (
+            key, key)
         cur.execute(sql)
-        return json.dumps(cur.fetchall())
+        data = cur.fetchall()
+        data = [{'_k': item['_k'], '_v':float(item['_v'])}
+                for item in data]
+        return json.dumps(data)
 
 
 @app.route('/series/<category>/<value>')
@@ -66,7 +81,7 @@ def get_flow_data():
 
     with g.db.cursor() as cur:
         # 查询所有数据 注意 限制300条
-        sql = 'SELECT * FROM flow_table ORDER BY last_updated ASC LIMIT 300'
+        sql = 'SELECT * FROM flow_table ORDER BY last_updated DESC LIMIT 300'
         cur.execute(sql)
         flow_data = cur.fetchall()
         return json.dumps(
@@ -79,9 +94,28 @@ def get_flow_data():
                     'src_ports': get_all_discrete_list_builder(keyword='src_port'),
                     'dst_ports': get_all_discrete_list_builder(keyword='dst_port'),
                 },
-                'protocols': get_all_discrete_list_builder('protocol')
+                'protocols': get_all_discrete_list_builder('protocol'),
+                'latest': get_latest_time()
             }
         )
+
+
+@app.route('/new/<last_time>')
+def get_new_flow(last_time):
+    """查询最新的实时数据
+    """
+
+    with g.db.cursor() as cur:
+        print(last_time)
+        sql = "SELECT * FROM flow_table WHERE last_updated>%s ORDER BY last_updated ASC" % last_time
+        print(sql)
+        cur.execute(sql)
+        flow_data = cur.fetchall()
+        return json.dumps({
+            'new_flow': flow_data,
+            'latest': get_latest_time(),
+            'protocols': get_all_discrete_list_builder('protocol'),
+        })
 
 
 if __name__ == '__main__':
